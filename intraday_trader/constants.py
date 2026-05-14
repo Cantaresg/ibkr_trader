@@ -2,7 +2,7 @@
 
 N_STOCKS         = 20   # agent observation slots (top-20 scanner output per day)
 BARS_PER_DAY     = 7    # 9:30, 10:30, 11:30, 12:30, 13:30, 14:30, 15:30 ET
-N_FEATURES       = 16   # per-stock intraday features
+N_FEATURES       = 20   # per-stock intraday features (v7a: +momentum_5d/20d, macd_hist, ma20d_dev)
 N_MARKET         = 5    # intraday market features
 LOOKBACK         = 14   # bar lookback window (~2 trading days)
 
@@ -11,7 +11,7 @@ PORTFOLIO_DIM    = N_STOCKS + 3   # = 23
 
 # flat observation dim: stocks + mask + market + portfolio
 OBS_DIM = N_STOCKS * LOOKBACK * N_FEATURES + N_STOCKS + LOOKBACK * N_MARKET + PORTFOLIO_DIM
-# = 20*14*16 + 20 + 14*5 + 23 = 4480 + 20 + 70 + 23 = 4593
+# = 20*14*20 + 20 + 14*5 + 23 = 5600 + 20 + 70 + 23 = 5713
 
 # Bar open hours in ET (integer hour of day when the bar opens)
 BAR_HOURS_ET = [9, 10, 11, 12, 13, 14, 15]

@@ -1,7 +1,7 @@
 """
 Intraday per-stock feature engineering from 1h OHLCV data.
 
-16 features per bar:
+20 features per bar:
   1  vwap_dev          — (close - session VWAP) / VWAP; resets each calendar day
   2  intraday_return   — (close - open_today) / open_today
   3  bar_return        — close / prev_close - 1
@@ -18,6 +18,10 @@ Intraday per-stock feature engineering from 1h OHLCV data.
  14  bar_body_ratio    — (close - open) / (high - low + 1e-8)
  15  momentum_open_rank — cross-sectional rank of intraday_return (filled in by DataStore)
  16  atr_ratio         — ATR(3) / 14-day rolling mean ATR(3)
+ 17  momentum_5d       — 5-trading-day return (close / close[35 bars ago] - 1)
+ 18  momentum_20d      — 20-trading-day return (close / close[140 bars ago] - 1)
+ 19  macd_hist         — MACD(12,26,9) histogram on hourly closes
+ 20  ma20d_dev         — (close - 20-day rolling mean close) / 20-day rolling mean
 
 All except tod_sin, tod_cos, bar_body_ratio, momentum_open_rank are
 z-score normalized over a 98-bar (14-day) rolling window, clipped ±3.
@@ -52,6 +56,10 @@ FEATURE_COLS: list[str] = [
     "bar_body_ratio",
     "momentum_open_rank",  # cross-sectional — filled by DataStore as 0.0 initially
     "atr_ratio",
+    "momentum_5d",         # 5-trading-day return; critical for overnight/multi-day holding
+    "momentum_20d",        # 20-trading-day return; monthly trend context
+    "macd_hist",           # MACD(12,26,9) histogram; momentum acceleration
+    "ma20d_dev",           # deviation from 20-day rolling mean; mean-reversion signal
 ]
 assert len(FEATURE_COLS) == N_FEATURES
 
@@ -84,6 +92,15 @@ def _bollinger(close: pd.Series, window: int = 14) -> tuple[pd.Series, pd.Series
     ma  = close.rolling(window, min_periods=1).mean()
     std = close.rolling(window, min_periods=1).std(ddof=1).fillna(0)
     return ma - 2 * std, ma + 2 * std   # lower, upper
+
+
+def _macd(close: pd.Series, fast: int = 12, slow: int = 26, signal: int = 9) -> pd.Series:
+    """MACD histogram = (EMA_fast - EMA_slow) - EMA_signal(EMA_fast - EMA_slow)."""
+    ema_fast = close.ewm(span=fast, min_periods=fast).mean()
+    ema_slow = close.ewm(span=slow, min_periods=slow).mean()
+    macd_line = ema_fast - ema_slow
+    signal_line = macd_line.ewm(span=signal, min_periods=signal).mean()
+    return (macd_line - signal_line).astype("float32")
 
 
 def _session_vwap(df: pd.DataFrame) -> pd.Series:
@@ -198,10 +215,24 @@ def compute(hourly_ohlcv: pd.DataFrame, norm_window: int = 98) -> pd.DataFrame:
     atr_mean = atr_now.rolling(norm_window, min_periods=14).mean().replace(0, np.nan)
     out["atr_ratio"] = (atr_now / atr_mean).fillna(1).clip(0, 5).astype("float32")
 
+    # Multi-day momentum (35 bars = 5 trading days × 7 bars/day)
+    bars_5d  = 5  * BARS_PER_DAY   # 35
+    bars_20d = 20 * BARS_PER_DAY   # 140
+    prev_5d  = df["close"].shift(bars_5d)
+    prev_20d = df["close"].shift(bars_20d)
+    out["momentum_5d"]  = ((df["close"] - prev_5d)  / prev_5d.replace(0, np.nan)).fillna(0).clip(-0.5, 0.5).astype("float32")
+    out["momentum_20d"] = ((df["close"] - prev_20d) / prev_20d.replace(0, np.nan)).fillna(0).clip(-0.5, 0.5).astype("float32")
+
+    out["macd_hist"] = _macd(df["close"], fast=12, slow=26, signal=9)
+
+    ma_20d = df["close"].rolling(bars_20d, min_periods=bars_5d).mean()
+    out["ma20d_dev"] = ((df["close"] - ma_20d) / ma_20d.replace(0, np.nan)).fillna(0).clip(-0.5, 0.5).astype("float32")
+
     to_normalize = [
         "vwap_dev", "intraday_return", "bar_return", "overnight_gap",
         "rel_volume", "vol_trend", "high_low_range", "rsi_7bar",
         "cumvol_fraction", "price_vs_prev_close", "bb_position", "atr_ratio",
+        "momentum_5d", "momentum_20d", "macd_hist", "ma20d_dev",
     ]
     out[to_normalize] = rolling_zscore(out[to_normalize], window=norm_window)
 

@@ -1,0 +1,130 @@
+project:
+  name: ibkr_drl_trader
+  seed: 42
+  log_level: INFO
+
+data:
+  universe_file: config/universe.yaml
+  raw_dir: data/raw
+  processed_dir: data/processed
+  start_date: "2008-01-01"
+  end_date: "2025-12-31"
+  # API keys loaded from .env file
+  simfin_key: ${SIMFIN_KEY}
+  finnhub_key: ${FINNHUB_KEY}
+  news_raw_dir: "G:/My Drive/ibkr_news_raw"
+  gdelt_raw_dir: "G:/My Drive/ibkr_gdelt_raw"
+  cboe_put_call_url: "https://www.cboe.com/us/options/market_statistics/daily/"
+
+features:
+  lookback_window: 30          # trading days of history per observation step
+  n_stock_features: 30         # per-stock feature count (technical 19 + order flow 2 + fundamentals 5 + price 4)
+  n_market_features: 7         # macro/regime features (VIX, term structure, SPY trend, breadth, yield spread, credit spread, put/call)
+  normalization_window: 252    # rolling z-score window (1 trading year)
+
+scanner:
+  n_candidates: 20             # stocks served to agent per episode
+  weights:
+    momentum_12_1: 0.40        # 12-month minus 1-month return (rank-normalized)
+    volume_activity: 0.30      # volume z-score vs 20-day average
+    news_activity: 0.30        # article count z-score over 5-day window
+  min_history_days: 300        # minimum trading days required to rank a stock
+
+environment:
+  n_stocks: 20                 # fixed observation slots (padded if scanner returns fewer)
+  episode_length: 252          # steps per episode (1 trading year)
+  initial_capital: 2000.0      # capital deployed for live trading (USD)
+  transaction_cost_bps: 10.0   # round-trip cost in basis points (10 bps = 0.10%)
+  min_weight_threshold: 0.01   # weights below this rounded to 0 (avoid tiny positions)
+
+reward:
+  excess_return_weight: 1.0
+  drawdown_penalty_weight: 2.0
+  drawdown_threshold: 0.05     # drawdown below this is not penalized
+  transaction_cost_weight: 0.5
+
+ppo:
+  learning_rate: 1.0e-4        # reduced from 3e-4: phase1 KL hit at step 1-2, too aggressive
+  n_steps: 2048                # steps per env per rollout
+  batch_size: 256
+  n_epochs: 10
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_range: 0.2
+  ent_coef: 0.03               # increased from 0.01: more exploration, prevents all-cash collapse
+  vf_coef: 0.5
+  max_grad_norm: 0.5
+  target_kl: 0.02              # stops PPO update if KL diverges too far
+  n_envs: 8
+  device: cuda
+  total_timesteps: 5_000_000
+
+sac:
+  learning_rate: 3.0e-4
+  buffer_size: 500_000          # replay buffer capacity (transitions)
+  batch_size: 256
+  tau: 0.005                    # polyak update coefficient
+  gamma: 0.99
+  train_freq: 1                 # update every step
+  gradient_steps: 1
+  learning_starts: 10_000       # fill buffer before first update
+  ent_coef: "auto"              # automatic entropy temperature tuning
+  n_envs: 4
+  device: cuda
+  total_timesteps: 2_000_000
+
+rppo:                           # RecurrentPPO (PPO + LSTM policy)
+  learning_rate: 1.0e-4
+  n_steps: 2048
+  batch_size: 256
+  n_epochs: 10
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_range: 0.2
+  ent_coef: 0.03
+  vf_coef: 0.5
+  max_grad_norm: 0.5
+  target_kl: 0.02
+  lstm_hidden_size: 256
+  n_lstm_layers: 1
+  n_envs: 8
+  device: cuda
+  total_timesteps: 2_000_000
+
+training:
+  checkpoint_dir: checkpoints/
+  checkpoint_freq: 100_000     # save checkpoint every N timesteps
+  eval_freq: 50_000            # evaluate on held-out episodes every N timesteps
+  eval_episodes: 10
+  tensorboard_log: logs/tensorboard/
+  policy: MlpPolicy            # Phase 1; change to RecurrentActorCriticPolicy for Phase 2
+
+regime:
+  n_states: 3                  # bull, bear, transition
+  covariance_type: full
+  n_iter: 200
+  retrain_frequency: monthly   # expand window, retrain HMM monthly in live trading
+
+backtesting:
+  walk_forward_windows: 11
+  train_years: 3
+  val_years: 1
+  test_years: 1
+  warm_start: true             # load previous window checkpoint as starting point
+
+ibkr:
+  host: "127.0.0.1"
+  port: 7497                   # 7497=paper TWS, 7496=live TWS
+  client_id: 1
+  risk:
+    max_position_weight: 0.15        # max weight per single stock
+    max_sector_weight: 0.40          # max total weight per GICS sector
+    daily_loss_limit: -0.02          # go to cash if daily PnL < -2% NAV
+    drawdown_halt_threshold: -0.10   # halve weights if drawdown from peak exceeds 10%
+    drawdown_resume_threshold: -0.05 # resume when drawdown recovers to 5% from peak
+  execution:
+    start_hour_et: 9
+    start_minute_et: 35              # execute 5 min after open to avoid gap fills
+    order_timeout_seconds: 180       # cancel limit order and resubmit as market after 3 min
+    buy_limit_offset: 0.01           # ask + $0.01
+    sell_limit_offset: 0.01          # bid - $0.01

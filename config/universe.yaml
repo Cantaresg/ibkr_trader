@@ -1,0 +1,184 @@
+# 123-stock S&P 500 universe, ~20-21 per sector group
+# GICS sectors grouped into 6 buckets for stratified scanner sampling
+# All stocks are large-cap S&P 500 constituents with data back to at least 2010
+
+sectors:
+  tech_comm:
+    label: "Technology & Communication"
+    tickers:
+      - AAPL    # Apple
+      - MSFT    # Microsoft
+      - NVDA    # NVIDIA
+      - GOOGL   # Alphabet Class A
+      - META    # Meta Platforms
+      - AVGO    # Broadcom
+      - ORCL    # Oracle
+      - CRM     # Salesforce
+      - AMD     # Advanced Micro Devices
+      - ADBE    # Adobe
+      - QCOM    # Qualcomm
+      - TXN     # Texas Instruments
+      - INTC    # Intel
+      - NOW     # ServiceNow
+      - AMAT    # Applied Materials
+      - MU      # Micron Technology
+      - LRCX    # Lam Research
+      - KLAC    # KLA Corporation
+      - CSCO    # Cisco Systems
+      - VZ      # Verizon
+      - T       # AT&T
+
+  healthcare:
+    label: "Healthcare"
+    tickers:
+      - LLY     # Eli Lilly
+      - UNH     # UnitedHealth Group
+      - JNJ     # Johnson & Johnson
+      - ABBV    # AbbVie
+      - MRK     # Merck
+      - TMO     # Thermo Fisher Scientific
+      - ABT     # Abbott Laboratories
+      - DHR     # Danaher
+      - AMGN    # Amgen
+      - PFE     # Pfizer
+      - ISRG    # Intuitive Surgical
+      - MDT     # Medtronic
+      - SYK     # Stryker
+      - GILD    # Gilead Sciences
+      - CVS     # CVS Health
+      - HCA     # HCA Healthcare
+      - CI      # Cigna
+      - ELV     # Elevance Health
+      - ZTS     # Zoetis
+      - BSX     # Boston Scientific
+      - BDX     # Becton Dickinson
+
+  financials:
+    label: "Financials"
+    tickers:
+      - BRK-B   # Berkshire Hathaway B
+      - JPM     # JPMorgan Chase
+      - V       # Visa
+      - MA      # Mastercard
+      - BAC     # Bank of America
+      - WFC     # Wells Fargo
+      - GS      # Goldman Sachs
+      - MS      # Morgan Stanley
+      - SPGI    # S&P Global
+      - BLK     # BlackRock
+      - CB      # Chubb
+      - AXP     # American Express
+      - USB     # US Bancorp
+      - PGR     # Progressive
+      - TFC     # Truist Financial
+      - COF     # Capital One
+      - MCO     # Moody's
+      - ICE     # Intercontinental Exchange
+      - CME     # CME Group
+      - AON     # Aon
+      - TRV     # Travelers Companies
+
+  consumer:
+    label: "Consumer Discretionary & Staples"
+    tickers:
+      - AMZN    # Amazon
+      - TSLA    # Tesla
+      - HD      # Home Depot
+      - MCD     # McDonald's
+      - NKE     # Nike
+      - SBUX    # Starbucks
+      - TJX     # TJX Companies
+      - LOW     # Lowe's
+      - BKNG    # Booking Holdings
+      - CMG     # Chipotle
+      - PG      # Procter & Gamble
+      - KO      # Coca-Cola
+      - PEP     # PepsiCo
+      - PM      # Philip Morris
+      - COST    # Costco
+      - WMT     # Walmart
+      - MO      # Altria
+      - CL      # Colgate-Palmolive
+      - GIS     # General Mills
+      - KMB     # Kimberly-Clark
+      - STZ     # Constellation Brands
+
+  industrials_energy:
+    label: "Industrials & Energy"
+    tickers:
+      - XOM     # ExxonMobil
+      - CVX     # Chevron
+      - COP     # ConocoPhillips
+      - SLB     # Schlumberger
+      - EOG     # EOG Resources
+      - OXY     # Occidental Petroleum
+      - GE      # GE Aerospace
+      - CAT     # Caterpillar
+      - HON     # Honeywell
+      - UPS     # United Parcel Service
+      - RTX     # RTX Corporation (Raytheon)
+      - LMT     # Lockheed Martin
+      - DE      # Deere & Company
+      - BA      # Boeing
+      - MMM     # 3M
+      - FDX     # FedEx
+      - EMR     # Emerson Electric
+      - ETN     # Eaton
+      - PH      # Parker Hannifin
+      - NOC     # Northrop Grumman
+      - GD      # General Dynamics
+
+  other:
+    label: "Utilities, Real Estate & Materials"
+    tickers:
+      - NEE     # NextEra Energy
+      - DUK     # Duke Energy
+      - SO      # Southern Company
+      - D       # Dominion Energy
+      - AEP     # American Electric Power
+      - EXC     # Exelon
+      - SRE     # Sempra Energy
+      - PLD     # Prologis (REIT)
+      - AMT     # American Tower (REIT)
+      - EQIX    # Equinix (REIT)
+      - CCI     # Crown Castle (REIT)
+      - SPG     # Simon Property Group (REIT)
+      - LIN     # Linde
+      - APD     # Air Products
+      - SHW     # Sherwin-Williams
+      - ECL     # Ecolab
+      - NEM     # Newmont (Gold)
+      - FCX     # Freeport-McMoRan (Copper)
+      - VMC     # Vulcan Materials
+      - MLM     # Martin Marietta Materials
+
+  growth_tech:
+    label: "High-Growth Technology"
+    tickers:
+      # Cybersecurity
+      - CRWD    # CrowdStrike         IPO Jun 2019
+      - PANW    # Palo Alto Networks  IPO Jul 2012
+      - ZS      # Zscaler             IPO Mar 2018
+      - NET     # Cloudflare          IPO Sep 2019
+      - FTNT    # Fortinet            IPO Nov 2009
+      # Cloud / SaaS
+      - DDOG    # Datadog             IPO Sep 2019
+      - SNOW    # Snowflake           IPO Sep 2020
+      - MDB     # MongoDB             IPO Oct 2017
+      - TEAM    # Atlassian           IPO Dec 2015
+      - VEEV    # Veeva Systems       IPO Oct 2013
+      - HUBS    # HubSpot             IPO Oct 2014
+      # AI / Analytics
+      - PLTR    # Palantir            IPO Sep 2020
+      # Fintech
+      - PYPL    # PayPal              IPO Jul 2015
+      - BILL    # Bill.com            IPO Dec 2019
+      # E-commerce / Platform
+      - SHOP    # Shopify             IPO May 2015
+      - TTD     # The Trade Desk      IPO Sep 2016
+      - ROKU    # Roku                IPO Sep 2017
+      # Hardware / AI Infrastructure
+      - SMCI    # Super Micro Computer IPO 2007
+      # E-commerce International
+      - MELI    # MercadoLibre        IPO Jul 2007
+      - RBLX    # Roblox              IPO Mar 2021

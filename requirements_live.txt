@@ -1,0 +1,35 @@
+# Live trading only — no training dependencies.
+# CPU-only torch (no CUDA needed for inference):
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+# Then install this file:
+#   pip install -r requirements_live.txt
+
+# Core DRL (inference only)
+stable-baselines3==2.8.0
+sb3-contrib==2.8.0
+shimmy>=2.0
+gymnasium==1.2.3
+
+# Data
+yfinance==1.3.0
+simfin==1.0.1
+newsapi-python
+
+# Feature Engineering
+pandas-ta==0.4.71b0
+pyarrow==24.0.0
+numpy>=2.2
+pandas>=2.3
+scipy
+
+# Market Regime
+hmmlearn==0.3.3
+scikit-learn
+
+# IBKR
+ib_async==2.1.0
+
+# Config & Utilities
+pyyaml
+python-dotenv
+pytz

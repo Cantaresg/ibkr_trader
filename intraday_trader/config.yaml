@@ -17,7 +17,7 @@ data:
 
 features:
   lookback_bars: 14                  # 2 trading days of hourly bars
-  n_stock_features: 16
+  n_stock_features: 20              # v7a: +momentum_5d/20d, macd_hist, ma20d_dev
   n_market_features: 5
   normalization_window_bars: 98      # 14 days × 7 bars
 
@@ -59,6 +59,7 @@ reward:
   transaction_cost_weight: 0.5
   overnight_exposure_weight: 0.0     # v6: overnight holding allowed, no penalty
   diversification_weight: 0.0001     # v5: tiny nudge only; 0.005 was 2.5x portfolio signal and caused reward hacking
+  sortino_asymmetry_weight: 2.0      # v7c: Sortino-style asymmetry — losses penalised (alpha+eta)x vs gains alpha x
 
 synthetic:
   synthetic_ratio: 0.15              # v5: halved; regime sampling already covers bear exposure

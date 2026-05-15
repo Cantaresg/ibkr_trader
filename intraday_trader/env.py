@@ -69,6 +69,7 @@ class IntradayTradingEnv(gym.Env):
         reward_gamma: float = 0.5,
         reward_delta: float = 0.001,
         reward_zeta: float  = 0.0,
+        reward_eta: float   = 0.0,
         drawdown_threshold: float = 0.01,
         seed: int | None = None,
         synthetic_store=None,   # IntradaySyntheticStore | None
@@ -93,6 +94,7 @@ class IntradayTradingEnv(gym.Env):
         self.r_gamma         = reward_gamma
         self.r_delta         = reward_delta
         self.r_zeta          = reward_zeta
+        self.r_eta           = reward_eta
         self.dd_threshold    = drawdown_threshold
         self.syn_store       = synthetic_store
         self.syn_ratio       = synthetic_ratio
@@ -292,6 +294,7 @@ class IntradayTradingEnv(gym.Env):
             gamma               = self.r_gamma,
             delta               = self.r_delta,
             zeta                = self.r_zeta,
+            eta                 = self.r_eta,
             drawdown_threshold  = self.dd_threshold,
         )
 

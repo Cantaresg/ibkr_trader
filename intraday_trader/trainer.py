@@ -8,6 +8,7 @@ algo: "ppo"  — standard PPO (MlpPolicy + IntradayFeaturesExtractor)
       "rppo" — RecurrentPPO with LSTM (MlpLstmPolicy, requires sb3-contrib)
 """
 from __future__ import annotations
+import math
 from pathlib import Path
 from typing import Optional
 
@@ -229,8 +230,19 @@ class IntradayTrainer:
             policy_name   = "MlpPolicy"
             policy_kwargs = self._base_policy_kwargs
 
+        lr_schedule = cfg.get("lr_schedule", "constant")
+        lr_max      = cfg["learning_rate"]
+        lr_min      = cfg.get("lr_min", lr_max / 10)
+        if lr_schedule == "cosine":
+            def _lr(progress_remaining: float) -> float:
+                return lr_min + (lr_max - lr_min) * 0.5 * (1 + math.cos(math.pi * (1 - progress_remaining)))
+            effective_lr = _lr
+            log.info("Using cosine LR decay: %.2e -> %.2e over training", lr_max, lr_min)
+        else:
+            effective_lr = lr_max
+
         common_kwargs = dict(
-            learning_rate   = cfg["learning_rate"],
+            learning_rate   = effective_lr,
             n_steps         = cfg["n_steps"],
             batch_size      = cfg["batch_size"],
             n_epochs        = cfg["n_epochs"],
@@ -247,7 +259,7 @@ class IntradayTrainer:
             seed            = seed,
         )
         load_kwargs = dict(
-            learning_rate = cfg["learning_rate"],
+            learning_rate = effective_lr,
             ent_coef      = cfg["ent_coef"],
             clip_range    = cfg["clip_range"],
             target_kl     = cfg.get("target_kl"),

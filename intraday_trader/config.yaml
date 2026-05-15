@@ -83,6 +83,8 @@ ppo:
 
 rppo:
   learning_rate: 1.0e-4              # v4: lowered 3x for stability (was 3e-4)
+  lr_schedule: constant              # v7d: set to "cosine" for cosine decay (lr → lr/10)
+  lr_min: 1.0e-5                     # v7d: cosine decay floor
   n_steps: 2048                      # v4: doubled; (n_steps * n_envs) / batch_size = 64 ✓
   batch_size: 256                    # v4: doubled (was 128)
   n_epochs: 10
